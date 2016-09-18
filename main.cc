@@ -13,14 +13,17 @@ using namespace std;
 int main() {
 	srand(time(NULL));
 	AvlTree tree = AvlTree();
-	for (uint32_t i = 0; i < 5; i++) {
+	for (uint32_t i = 0; i < 100; i++) {
 		uint32_t temp_value = rand() % 10;
 		cout << temp_value << " ";
 		tree.Insert(temp_value);
 	}
-	tree.Delete(3);
+
 //	cout << endl << "==============================" << endl;
 //    tree.Dlr();
+    cout << endl << "==============================" << endl;
+    tree.Ldr();
+    tree.Delete(3);
     cout << endl << "==============================" << endl;
     tree.Ldr();
 //    cout << endl << "==============================" << endl;
