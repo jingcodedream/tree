@@ -7,8 +7,8 @@
 
 #include <iostream>
 
-#include "Avl_Tree.h"
-#include "RD_Tree.h"
+#include "avl_tree.h"
+#include "rb_tree.h"
 using namespace std;
 
 int main() {
@@ -30,7 +30,7 @@ int main() {
 ////    cout << endl << "==============================" << endl;
 ////    tree.Lrd();
 
-	RDTree tree = RDTree();
+	RBTree tree = RBTree();
 	for (uint32_t i = 0; i < 100; i++) {
 		uint32_t temp_value = rand() % 100;
 		cout << temp_value << " " << endl;
