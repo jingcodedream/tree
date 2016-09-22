@@ -8,40 +8,37 @@
 #include "rb_tree.h"
 
 bool RBTree::Insert(uint32_t value) {
-	if (root_ == nullptr) { //如果根节点为空，直接创建根节点，并将节点颜色设置为黑色
-		root_ = new RBTreeNode(value);
-		root_->color_ = BLACK;
-		return true;
-	}
-	RBTreeNode * temp_node = root_;
-	RBTreeNode * parent_temp_node = temp_node;
-	while (true) {
-		parent_temp_node = temp_node;
-		if (value > temp_node->value_) {
-			temp_node = temp_node->right_;
-			if (temp_node == nullptr) {
-				temp_node = new RBTreeNode(value);
-				temp_node->parent_ = parent_temp_node;
-				parent_temp_node->right_ = temp_node;
-				break;
-			}
-		} else if (value < temp_node->value_) {
-			temp_node = temp_node->left_;
-			if (temp_node == nullptr) {
-				temp_node = new RBTreeNode(value);
-				temp_node->parent_ = parent_temp_node;
-				parent_temp_node->left_ = temp_node;
-				break;
-			}
+	RBTreeNode * index = root_;
+	RBTreeNode * parent_index = index;
+	while (index != leaf_node_) {
+		parent_index = index;
+		if (value > index->value_) {
+			index = index->right_;
+		} else if (value < index->value_) {
+			index = index->left_;
 		} else {
-			++temp_node->count_;
+			++index->count_;
 			return false;
 		}
 	}
-	if (GetColor(parent_temp_node) == BLACK) {  //如果插入节点的父节点颜色为黑色，不需要管
+	index = new RBTreeNode(value);
+	index->color_ = RED;
+	index->left_ = index->right_ = index->parent_ = leaf_node_;
+	if (parent_index == leaf_node_) {
+		root_ = index;
+		index->color_ = BLACK;
+		return true;
+	}
+	if (value < parent_index->value_) {
+		parent_index->left_ = index;
+	} else {
+		parent_index->right_ = index;
+	}
+	index->parent_ = parent_index;
+	if (GetColor(parent_index) == BLACK) {  //如果插入节点的父节点颜色为黑色，不需要管
 		return true;
 	} else { //否者需要对插入节点进行处理
-		RDInsertFixup(temp_node);
+		RDInsertFixup(index);
 	}
 	return true;
 }
@@ -134,19 +131,16 @@ bool RBTree::Delete(uint32_t value) {
 			}
 		}
 	}
-	Color temp_color = RED;
-	if (temp_node != nullptr) {
-		temp_color = temp_node->color_;
-		temp_node->right_ = nullptr;
-		temp_node->left_ = nullptr;
-		temp_node->parent_ = nullptr;
-		delete temp_node;
-	} else {
+	if (temp_node == nullptr) {
 		return false;  //如果没找到，返回删除失败
 	}
-	if (temp_color == BLACK) { //被删除节点是颜色是黑色才会对红黑树有影响，才需要修复
+	if (GetColor(temp_node) == BLACK) { //被删除节点是颜色是黑色才会对红黑树有影响，才需要修复
 		RDDeleteFixup(temp_node);
 	}
+	temp_node->right_ = nullptr;
+	temp_node->left_ = nullptr;
+	temp_node->parent_ = nullptr;
+	delete temp_node;
 	return true;
 }
 
@@ -154,19 +148,21 @@ void RBTree::RDDeleteFixup(RBTreeNode * node) {
 
 }
 
-
-void RBTree::RightRotato(RBTreeNode * node) {
-	if (node->parent_ == nullptr) {
+bool RBTree::RightRotato(RBTreeNode * node) {
+	if (node == leaf_node_ || node->left_ == leaf_node_) {
+		return false;  //不能右旋
+	}
+	if (node->parent_ == leaf_node_) {  //根节点右旋
 		RBTreeNode * temp_node = node->left_->right_;
 		root_ = node->left_;
 		root_->right_ = node;
 		node->parent_ = root_;
 		node->left_ = temp_node;
-		if (node->left_ != nullptr) {
+		if (node->left_ != leaf_node_) {
 			node->left_->parent_ = node;
 		}
-		root_->parent_ = nullptr;
-	} else {
+		root_->parent_ = leaf_node_;
+	} else { //其他节点的右旋
 		RBTreeNode * temp_node = node->left_->right_;
 		if (node == node->parent_->left_) {
 			node->parent_->left_ = node->left_;
@@ -177,24 +173,28 @@ void RBTree::RightRotato(RBTreeNode * node) {
 		node->parent_ = node->left_;
 		node->left_->right_ = node;
 		node->left_ = temp_node;
-		if (node->left_ != nullptr) {
+		if (node->left_ != leaf_node_) {
 			node->left_->parent_ = node;
 		}
 	}
+	return true;
 }
 
-void RBTree::LeftRotato(RBTreeNode * node) {
-	if (node->parent_ == nullptr) {
+bool RBTree::LeftRotato(RBTreeNode * node) {
+	if (node == leaf_node_ || node->right_ == leaf_node_) {
+		return false;  //不能左旋
+	}
+	if (node->parent_ == leaf_node_) {  //根节点的左旋
 		RBTreeNode * temp_node = node->right_->left_;
 		root_ = node->right_;
 		root_->left_ = node;
 		node->parent_ = root_;
 		node->right_ = temp_node;
-		if (node->right_ != nullptr) {
+		if (node->right_ != leaf_node_) {
 			node->right_->parent_ = node;
 		}
-		root_->parent_ = nullptr;
-	} else {
+		root_->parent_ = leaf_node_;
+	} else {  //其他节点的左旋
 		RBTreeNode * temp_node = node->right_->left_;
 		if (node == node->parent_->left_) {
 			node->parent_->left_ = node->right_;
@@ -205,10 +205,11 @@ void RBTree::LeftRotato(RBTreeNode * node) {
 		node->parent_ = node->right_;
 		node->right_->left_ = node;
 		node->right_ = temp_node;
-		if (node->right_ != nullptr) {
+		if (node->right_ != leaf_node_) {
 			node->right_->parent_ = node;
 		}
 	}
+	return true;
 }
 
 
@@ -217,12 +218,12 @@ void RBTree::Dlr() {
 }
 
 void RBTree::Dlr(RBTreeNode *node) {
-	if (node != nullptr) {
+	if (node != leaf_node_) {
 		std::cout << node->value_ << ":" << node->count_ << ":" << node->color_ << std::endl;
-		if (node->left_ != nullptr) {
+		if (node->left_ != leaf_node_) {
 			Dlr(node->left_);
 		}
-		if (node->right_ != nullptr) {
+		if (node->right_ != leaf_node_) {
 			Dlr(node->right_);
 		}
 	}
@@ -233,12 +234,12 @@ void RBTree::Ldr() {
 }
 
 void RBTree::Ldr(RBTreeNode *node) {
-	if (node != nullptr) {
-		if (node->left_ != nullptr) {
+	if (node != leaf_node_) {
+		if (node->left_ != leaf_node_) {
 			Ldr(node->left_);
 		}
 		std::cout << node->value_ << ":" << node->count_ << ":" << node->color_ << std::endl;
-		if (node->right_ != nullptr) {
+		if (node->right_ != leaf_node_) {
 			Ldr(node->right_);
 		}
 	}
@@ -249,11 +250,11 @@ void RBTree::Lrd() {
 }
 
 void RBTree::Lrd(RBTreeNode *node) {
-	if (node != nullptr) {
-		if (node->left_ != nullptr) {
+	if (node != leaf_node_) {
+		if (node->left_ != leaf_node_) {
 			Lrd(node->left_);
 		}
-		if (node->right_ != nullptr) {
+		if (node->right_ != leaf_node_) {
 			Lrd(node->right_);
 		}
 		std::cout << node->value_ << ":" << node->count_ << ":" << node->color_ << std::endl;

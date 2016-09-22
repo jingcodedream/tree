@@ -31,11 +31,12 @@ int main() {
 ////    tree.Lrd();
 
 	RBTree tree = RBTree();
-	for (uint32_t i = 0; i < 100; i++) {
-		uint32_t temp_value = rand() % 100;
-		cout << temp_value << " " << endl;
-		tree.Insert(temp_value);
-	}
+//	for (uint32_t i = 0; i < 100; i++) {
+//		uint32_t temp_value = rand() % 100;
+//		cout << temp_value << " " << endl;
+//		tree.Insert(temp_value);
+//	}
+	tree.Insert(1);
 	cout << endl << "==============================" << endl;
     tree.Ldr();
 	return 0;

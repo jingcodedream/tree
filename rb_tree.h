@@ -11,16 +11,17 @@
 #include <iostream>
 #include <stdint.h>
 
-enum Color {
-	RED = 0,
-	BLACK
-};
-
 class RBTree {
 public:
-	RBTree() : root_(nullptr) {}
-	RBTree(uint32_t value) : root_(new RBTreeNode(value)) {}
+	RBTree() : leaf_node_(new RBTreeNode()), root_(leaf_node_) {
+		leaf_node_->left_ = leaf_node_->right_ = leaf_node_->parent_ = root_;
+	}
+	RBTree(uint32_t value) : leaf_node_(new RBTreeNode()), root_(new RBTreeNode(value)) {
+		leaf_node_->left_ = leaf_node_->right_ = leaf_node_->parent_ = root_;
+		root_->parent_ = root_->left_ = root_->right_ = leaf_node_;
+	}
 	~RBTree() {
+		leaf_node_->left_ = leaf_node_->right_ = nullptr; //断开叶节点和根节点之间的链接
 		if (root_ != nullptr) {
 			delete root_;
 			root_  = nullptr;
@@ -32,10 +33,11 @@ public:
 	void Ldr();  //中序遍历
 	void Lrd();  //后序遍历
 private:
+	enum COLOR {RED, BLACK};
 	struct RBTreeNode {
 		RBTreeNode() : RBTreeNode(0){}
 		RBTreeNode(uint32_t value) : left_(nullptr), right_(nullptr), parent_(nullptr), value_(value),
-				color_(RED), count_(1){}
+				color_(BLACK), count_(1){}
 		~RBTreeNode() {
 			if (left_ != nullptr) {
 				delete left_;
@@ -50,12 +52,12 @@ private:
 		RBTreeNode * right_;
 		RBTreeNode * parent_;
 		uint32_t value_;
-		Color color_;
+		COLOR color_;
 		uint32_t count_;
 	};
 
 private:
-	Color GetColor(RBTreeNode *node) { //得到color
+	COLOR GetColor(RBTreeNode *node) { //得到color
 		if (node == nullptr) {
 			return BLACK;
 		}
@@ -66,9 +68,13 @@ private:
 	void Lrd(RBTreeNode *node); //后序遍历，递归实现
 	void RDInsertFixup(RBTreeNode *node); //插入修复
 	void RDDeleteFixup(RBTreeNode *node); //删除修复
-	void RightRotato(RBTreeNode *node);   //右旋
-	void LeftRotato(RBTreeNode *node);    //左旋
+	bool RightRotato(RBTreeNode *node);   //右旋
+	bool LeftRotato(RBTreeNode *node);    //左旋
+	void Destroy() {
+
+	}
 private:
+	RBTreeNode * leaf_node_;
 	RBTreeNode * root_;
 };
 
