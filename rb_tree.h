@@ -22,9 +22,13 @@ public:
 	}
 	~RBTree() {
 		leaf_node_->left_ = leaf_node_->right_ = nullptr; //断开叶节点和根节点之间的链接
-		if (root_ != nullptr) {
+		if (root_ != leaf_node_) {
 			delete root_;
 			root_  = nullptr;
+		}
+		if (leaf_node_ != nullptr) {
+			delete leaf_node_;
+			leaf_node_ = nullptr;
 		}
 	}
 	bool Insert(uint32_t value);
@@ -32,6 +36,7 @@ public:
 	void Dlr();  //前序遍历
 	void Ldr();  //中序遍历
 	void Lrd();  //后序遍历
+	void PrintBlackSum();  //输出从根节点到所有叶节点的黑色节点的数量
 private:
 	enum COLOR {RED, BLACK};
 	struct RBTreeNode {
@@ -39,11 +44,11 @@ private:
 		RBTreeNode(uint32_t value) : left_(nullptr), right_(nullptr), parent_(nullptr), value_(value),
 				color_(BLACK), count_(1){}
 		~RBTreeNode() {
-			if (left_ != nullptr) {
+			if (left_ != nullptr && left_->left_ != nullptr) { //清理叶节点之前的节点，叶节点单独处理
 				delete left_;
 				left_ = nullptr;
 			}
-			if (right_ != nullptr) {
+			if (right_ != nullptr && right_->left_ != nullptr) {
 				delete right_;
 				right_ = nullptr;
 			}
@@ -66,6 +71,7 @@ private:
 	void Dlr(RBTreeNode *node); //前序遍历，递归实现
 	void Ldr(RBTreeNode *node); //中序遍历，递归实现
 	void Lrd(RBTreeNode *node); //后序遍历，递归实现
+	void PrintBlackSum(RBTreeNode *node, uint32_t sum);
 	void RDInsertFixup(RBTreeNode *node); //插入修复
 	void RDDeleteFixup(RBTreeNode *node); //删除修复
 	bool RightRotato(RBTreeNode *node);   //右旋
